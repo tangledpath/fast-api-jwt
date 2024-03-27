@@ -7,35 +7,35 @@ from fast_api_jwt.utils.jwt_util import JWTUtil
 # Client for testing app:
 client = TestClient(app)
 
-
 def test_by_username_no_jwt():
-    # Test with no JWT
-    response = client.get("/services/accounts?username=stevenm")
+    response = client.get("/services/storyspaces?username=stevenm")
     assert response.status_code == 401
     assert response.json() == {"detail": ERR_AUTH_HEADER_MISSING}
 
 
 def test_by_username():
-    # Test with JWT
-    response = client.get("/services/accounts?username=stevenm", headers=JWTUtil.auth_headers())
+    response = client.get("/services/storyspaces?username=stevenm", headers=JWTUtil.auth_headers())
     assert response.status_code == 200
-    assert response.json() == {
-        'id': '2112',
-        'username': 'stevenm'
-    }
-
+    assert response.json() == [
+        {
+            'id': 1,
+            'name': 'barfood'
+        },
+        {
+            'id': 2,
+            'name': 'bazbars'
+        }
+    ]
 
 def test_by_id_no_jwt():
-    # Test with no JWT
-    response = client.get("/services/accounts/2112")
+    response = client.get("/services/storyspaces/2113")
     assert response.status_code == 401
     assert response.json() == {"detail": ERR_AUTH_HEADER_MISSING}
 
 def test_by_id():
-    # Test with JWT
-    response = client.get("/services/accounts/2113", headers=JWTUtil.auth_headers())
+    response = client.get("/services/storyspaces/2113", headers=JWTUtil.auth_headers())
     assert response.status_code == 200
     assert response.json() == {
-        'id': "2113",
-        'username': 'foobar'
+        'id': '2113',
+        'name': 'barfood'
     }

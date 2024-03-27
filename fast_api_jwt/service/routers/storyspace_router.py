@@ -8,18 +8,8 @@ router = APIRouter(
 )
 
 
-@router.get("/{storyspace_id}")
-async def get_storyspace(storyspace_id: str):
-    print(f"Getting storyspace_id: {storyspace_id}")
-    storyspace = {
-        'id': storyspace_id,
-        'name': 'barfood'
-    }
-    return storyspace
-
-
 @router.get("/")
-async def get_account_storyspaces(username: str):
+async def get_by_username(username: str):
     print(f"Getting storyspace by username: {username}")
     storyspaces = [
         {
@@ -32,7 +22,17 @@ async def get_account_storyspaces(username: str):
         }
     ]
 
-    return storyspaces
+    return JSONResponse(storyspaces)
+
+@router.get("/{storyspace_id}")
+async def get_by_id(storyspace_id: str):
+    print(f"Getting storyspace_id: {storyspace_id}")
+    storyspace = {
+        'id': storyspace_id,
+        'name': 'barfood'
+    }
+    return JSONResponse(storyspace)
+
 
 
 @router.post("/begin")

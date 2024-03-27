@@ -10,6 +10,7 @@ from fast_api_jwt.config import Config
 settings = Config().settings
 
 ERR_AUTH_HEADER_MISSING = "authorization header missing"
+ERR_INCORRECT_API_TOKEN = "Incorrect API token"
 async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
     print("authorization: ", authorization)
     if not authorization:
@@ -23,7 +24,7 @@ async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
         raise HTTPException(status_code=401, detail=msg)
 
     if jot['apiKey'] != settings['API_KEY']:
-        raise HTTPException(status_code=401, detail="Incorrect or missing API Key")
+        raise HTTPException(status_code=401, detail=ERR_INCORRECT_API_TOKEN)
 
     # print(f"[INFO] JOT: {jot}")
 
