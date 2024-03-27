@@ -1,0 +1,14 @@
+API_KEY: 6f16c1a4-0de8-47ca-abbc-d7d02ea0d3ee
+WEB_SERVER_ADDRESS: 'localhost:8085'
+ACCOUNTS_SERVICE_ADDRESS: 'localhost:8085'
+max_workers: 10
+parent_calls_tracked: 10
+
+LOGGING:
+    version: 1
+    handlers:
+        console:
+            class: logging.StreamHandler
+    root:
+        level: DEBUG
+        handlers: [console]
