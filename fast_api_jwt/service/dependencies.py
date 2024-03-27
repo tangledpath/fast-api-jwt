@@ -12,12 +12,10 @@ settings = Config().settings
 ERR_AUTH_HEADER_MISSING = "authorization header missing"
 ERR_INCORRECT_API_TOKEN = "Incorrect API token"
 async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
-    print("authorization: ", authorization)
     if not authorization:
         raise HTTPException(status_code=401, detail=ERR_AUTH_HEADER_MISSING)
     try:
         jot = JWTUtil.decode_jwt(authorization)
-        print("JOT: ", jot)
     except BaseException as x:
         msg = f"Error decoding token {str(x)}"
         print(f"[ERROR](Message: {msg})")
@@ -25,8 +23,6 @@ async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
 
     if jot['apiKey'] != settings['API_KEY']:
         raise HTTPException(status_code=401, detail=ERR_INCORRECT_API_TOKEN)
-
-    # print(f"[INFO] JOT: {jot}")
 
 
 def encode_jwt():

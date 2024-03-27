@@ -17,8 +17,7 @@ class JWTUtil:
 
     @classmethod
     def decode_jwt(cls, authorization_header: str):
-        print("decode_jwt: ", authorization_header)
-        return jwt.decode(authorization_header, cls.KEY, algorithms=[cls.settings['JWT_ALGORITHM']],
+            return jwt.decode(authorization_header, cls.KEY, algorithms=[cls.settings['JWT_ALGORITHM']],
                           audience='fast-api-jwtp-client')
 
     @classmethod
