@@ -9,7 +9,7 @@ router = APIRouter(
 
 
 @router.get("/{account_id}")
-async def get(account_id: str):
+async def get_by_id(account_id: str):
     # TODO: get from db`
 
     print(f"Getting account_id: {account_id}")
@@ -21,10 +21,10 @@ async def get(account_id: str):
 
 
 @router.get('/')
-async def get_account_by_username(username):
+async def get_by_username(username):
     # TODO: get from db
     account = {
-        'id': 2112,
+        'id': '2112',
         'username': username
     }
     return JSONResponse(account)

@@ -1,23 +1,20 @@
 import uvicorn as uvicorn
 from fastapi import Depends, FastAPI
 
+from fast_api_jwt.service import admin
 from .dependencies import verify_jwt
-from .internal import admin
-from .routers import account_service, storyspace_service
+from .routers import account_router, storyspace_router
 
 
 def create_app() -> FastAPI:
     current_app = FastAPI(
-        dependencies=[Depends(verify_jwt)],
-        title="Storytangle Services",
-        description="Storytangle Services",
+        title="Fast API JWT Example",
+        description="Fast API JWT Example",
         version="1.0.0",
     )
 
-    current_app.include_router(account_service.router, dependencies=[Depends(verify_jwt)])
-    current_app.include_router(storyspace_service.router, dependencies=[Depends(verify_jwt)])
-    # app.include_router(account_handler.router)
-    # app.include_router(storyspace_handler.router)
+    current_app.include_router(account_router.router, dependencies=[Depends(verify_jwt)])
+    current_app.include_router(storyspace_router.router, dependencies=[Depends(verify_jwt)])
 
     current_app.include_router(
         admin.router,
@@ -27,13 +24,15 @@ def create_app() -> FastAPI:
         responses={418: {"description": "Admin"}},
     )
 
-    # current_app.celery_app = create_celery()
     return current_app
 
 
+
 app = create_app()
-# celery = app.celery_app
-# celery.autodiscover_tasks()
+
+@app.get("/")
+async def read_main():
+    return {"msg": "Hello from our fast-api app."}
 
 
 @app.get("/")
@@ -41,6 +40,6 @@ async def root():
     return {"message": "Hello Fast API!"}
 
 
-# Start the services service:
+# Start the service:
 if __name__ == "__main__":
     uvicorn.run("fast_api_jwt.service.main:app", port=9000, reload=True)

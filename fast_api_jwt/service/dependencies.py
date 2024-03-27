@@ -1,20 +1,22 @@
+import datetime
 from typing import Annotated
 
 from fastapi import Header, HTTPException
 from jose import jwt
+
+from fast_api_jwt.utils.jwt_util import JWTUtil
 from fast_api_jwt.config import Config
 
 settings = Config().settings
 
-with open("config/jwtRS256.key.pem") as f:
-    key = f.read()
-
-
+ERR_AUTH_HEADER_MISSING = "authorization header missing"
 async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
+    print("authorization: ", authorization)
     if not authorization:
-        raise HTTPException(status_code=401, detail="authorization header missing")
+        raise HTTPException(status_code=401, detail=ERR_AUTH_HEADER_MISSING)
     try:
-        jot = jwt.decode(authorization, key, algorithms=["RS256"], audience='fast-api-jwtp-client')
+        jot = JWTUtil.decode_jwt(authorization)
+        print("JOT: ", jot)
     except BaseException as x:
         msg = f"Error decoding token {str(x)}"
         print(f"[ERROR](Message: {msg})")
@@ -23,7 +25,25 @@ async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
     if jot['apiKey'] != settings['API_KEY']:
         raise HTTPException(status_code=401, detail="Incorrect or missing API Key")
 
-    print(f"[INFO] JOT: {jot}")
+    # print(f"[INFO] JOT: {jot}")
 
-    # if api_key != settings.STORYTANGLE_API_KEY
-    #     raise HTTPException(status_code=400, detail="X-Token header invalid")
+
+def encode_jwt():
+    """ Create a token to be used for authorizing API calls """
+    payload = dict(
+        iat=datetime.datetime.now(datetime.UTC),
+        exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=5),
+        nbf=datetime.datetime.now(datetime.UTC),
+        iss='fast-api-jwtp-client',
+        apiKey=settings['API_KEY'],
+    )
+
+    token = jwt.encode(payload, prikey, algorithm='RS256');
+    return token
+    #   const jwt = await new jose.SignJWT(payload)
+    # .setProtectedHeader({alg: "RS256"})
+    # .setIssuedAt()
+    # .setIssuer("storytangle")
+    # .setAudience("storytangle-api")
+    # .setExpirationTime("2h")
+    # .sign(privateKey);
