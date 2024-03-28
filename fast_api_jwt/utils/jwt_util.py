@@ -3,22 +3,10 @@ import os
 
 from jose import jwt
 
-
-from fast_api_jwt.config import Config
-
-# Load dotenv (not in production):
-if os.getenv('PYTHON_ENV') != 'production':
-    from dotenv import load_dotenv
-    load_dotenv()
-
-
 class JWTUtil:
-    KEY = os.getenv('JWT_SECRET_KEY')
-    settings = Config().settings
-
     @classmethod
     def decode_jwt(cls, authorization_header: str):
-        return jwt.decode(authorization_header, cls.KEY, algorithms=[cls.settings['JWT_ALGORITHM']],
+        return jwt.decode(authorization_header, os.getenv('JWT_SECRET_KEY'), algorithms=[os.getenv('JWT_ALGORITHM')],
                           audience='fast-api-jwtp-client')
 
     @classmethod
@@ -29,10 +17,10 @@ class JWTUtil:
             exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=5),
             nbf=datetime.datetime.now(datetime.UTC),
             iss='fast-api-jwtp-client',
-            apiKey=cls.settings['API_KEY'],
+            apiKey=os.getenv('API_KEY'),
         )
 
-        token = jwt.encode(payload, cls.KEY, algorithm=cls.settings['JWT_ALGORITHM'])
+        token = jwt.encode(payload, os.getenv('JWT_SECRET_KEY'), algorithm=os.getenv('JWT_ALGORITHM'))
         return token
 
     @classmethod

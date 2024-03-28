@@ -1,20 +1,23 @@
-import datetime
+import os
 from typing import Annotated
 
 from fastapi import Header, HTTPException
-from jose import jwt
 from loguru import logger
 
-from fast_api_jwt.config import Config
 from fast_api_jwt.utils.jwt_util import JWTUtil
 
-settings = Config().settings
-
+# Error messages:
 ERR_AUTH_HEADER_MISSING = "authorization header missing"
 ERR_INCORRECT_API_TOKEN = "Incorrect API token"
 
 
 async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
+    """
+    Verify the JWT in the authorization header.  A 401 status code is sent back if
+    it is not present, malformed, or does not contain the corrrect apiKey.
+    :param authorization: The authorization header
+    :return:
+    """
     if not authorization:
         raise HTTPException(status_code=401, detail=ERR_AUTH_HEADER_MISSING)
     try:
@@ -24,26 +27,5 @@ async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
         logger.error(f"[ERROR](Message: {msg})")
         raise HTTPException(status_code=401, detail=msg)
 
-    if jot['apiKey'] != settings['API_KEY']:
+    if jot['apiKey'] != os.getenv('API_KEY'):
         raise HTTPException(status_code=401, detail=ERR_INCORRECT_API_TOKEN)
-
-
-def encode_jwt():
-    """ Create a token to be used for authorizing API calls """
-    payload = dict(
-        iat=datetime.datetime.now(datetime.UTC),
-        exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=5),
-        nbf=datetime.datetime.now(datetime.UTC),
-        iss='fast-api-jwtp-client',
-        apiKey=settings['API_KEY'],
-    )
-
-    token = jwt.encode(payload, prikey, algorithm='RS256');
-    return token
-    #   const jwt = await new jose.SignJWT(payload)
-    # .setProtectedHeader({alg: "RS256"})
-    # .setIssuedAt()
-    # .setIssuer("storytangle")
-    # .setAudience("storytangle-api")
-    # .setExpirationTime("2h")
-    # .sign(privateKey);

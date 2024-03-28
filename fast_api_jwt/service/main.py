@@ -8,11 +8,10 @@ from .dependencies import verify_jwt
 from .routers.account_router import AccountRouter
 from .routers.storyspace_router import StoryspaceRouter
 
+# Use dotenv in development and test environments:
 if os.getenv('PYTHON_ENV') != 'production':
     from dotenv import load_dotenv
-
     load_dotenv()
-
 
 class FastAPIJWTService(FastAPI):
     def __init__(self):
@@ -40,7 +39,7 @@ class FastAPIJWTService(FastAPI):
         self.router.add_api_route('/', self.root, methods=['GET'])
 
     async def root(self):
-        return {"msg": "Hello from our fast-api app."}
+        return {"msg": "Hello from our fast-api-jwt app."}
 
 
 app = FastAPIJWTService()

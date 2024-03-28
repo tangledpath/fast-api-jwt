@@ -31,6 +31,7 @@ def test_by_account_id_no_jwt():
     assert response.status_code == 401
     assert response.json() == {"detail": ERR_AUTH_HEADER_MISSING}
 
+
 def test_by_account_id():
     # Test with JWT
     response = client.get("/service/account/?account_id=2113", headers=JWTUtil.auth_headers())

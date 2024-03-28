@@ -31,7 +31,6 @@ class AccountRouter():
         }
         return JSONResponse(account)
 
-
     def register_account(self, account_data: dict):
         # TODO: invoke event so this command can executed asynchronously
         logger.info(f"Registering account: {account_data}")
