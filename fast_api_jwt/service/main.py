@@ -5,45 +5,46 @@ from fastapi import Depends, FastAPI
 
 from fast_api_jwt.service import admin
 from .dependencies import verify_jwt
-from .routers import account_router, storyspace_router
+from .routers.account_router import AccountRouter
+from .routers.storyspace_router import StoryspaceRouter
 
 if os.getenv('PYTHON_ENV') != 'production':
     from dotenv import load_dotenv
+
     load_dotenv()
 
-def create_app() -> FastAPI:
-    current_app = FastAPI(
-        title="Fast API JWT Example",
-        description="Fast API JWT Example",
-        version="1.0.0",
-    )
 
-    current_app.include_router(account_router.router, dependencies=[Depends(verify_jwt)])
-    current_app.include_router(storyspace_router.router, dependencies=[Depends(verify_jwt)])
+class FastAPIJWTService(FastAPI):
+    def __init__(self):
+        super().__init__(
+            title="Fast API JWT Example",
+            description="Fast API JWT Example",
+            version="1.0.0",
+        )
 
-    current_app.include_router(
-        admin.router,
-        prefix="/admin",
-        tags=["admin"],
-        dependencies=[Depends(verify_jwt)],
-        responses={418: {"description": "Admin"}},
-    )
+    def create(self) -> FastAPI:
+        account_router = AccountRouter()
+        storyspace_router = StoryspaceRouter()
 
-    return current_app
+        self.include_router(account_router.router, dependencies=[Depends(verify_jwt)])
+        self.include_router(storyspace_router.router, dependencies=[Depends(verify_jwt)])
+
+        self.include_router(
+            admin.router,
+            prefix="/admin",
+            tags=["admin"],
+            dependencies=[Depends(verify_jwt)],
+            responses={418: {"description": "Admin"}},
+        )
+
+        self.router.add_api_route('/', self.root, methods=['GET'])
+
+    async def root(self):
+        return {"msg": "Hello from our fast-api app."}
 
 
-app = create_app()
-
-
-@app.get("/")
-async def read_main():
-    return {"msg": "Hello from our fast-api app."}
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello Fast API!"}
-
+app = FastAPIJWTService()
+app.create()
 
 # Start the service:
 if __name__ == "__main__":

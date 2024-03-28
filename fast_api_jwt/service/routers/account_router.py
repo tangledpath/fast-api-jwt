@@ -2,37 +2,37 @@ from fastapi import APIRouter
 from loguru import logger
 from starlette.responses import JSONResponse
 
-router = APIRouter(
-    prefix="/services/accounts",
-    tags=["accounts"],
-    responses={404: {"description": "Not found"}},
-)
 
+class AccountRouter():
+    def __init__(self):
+        self.router = APIRouter(
+            prefix="/service/accounts",
+            tags=["accounts"],
+            responses={404: {"description": "Not found"}},
+        )
+        self.router.add_api_route('/{account_id}', self.get_by_id, methods=['GET'])
+        self.router.add_api_route('/', self.get_by_username, methods=['GET'])
+        self.router.add_api_route('/register', self.register_account, methods=['POST'])
 
-@router.get("/{account_id}")
-async def get_by_id(account_id: str):
-    # TODO: get from db`
+    async def get_by_id(self, account_id: str):
+        # TODO: get from db`
 
-    logger.info(f"Getting account_id: {account_id}")
-    account = {
-        'id': account_id,
-        'username': 'foobar'
-    }
-    return JSONResponse(account)
+        logger.info(f"Getting account_id: {account_id}")
+        account = {
+            'id': account_id,
+            'username': 'foobar'
+        }
+        return JSONResponse(account)
 
+    async def get_by_username(self, username):
+        # TODO: get from db
+        account = {
+            'id': '2112',
+            'username': username
+        }
+        return JSONResponse(account)
 
-@router.get('/')
-async def get_by_username(username):
-    # TODO: get from db
-    account = {
-        'id': '2112',
-        'username': username
-    }
-    return JSONResponse(account)
-
-
-@router.post('/register')
-def register_account(account_data: dict):
-    # TODO: invoke event so this command can executed asynchronously
-    logger.info(f"Registering account: {account_data}")
-    return JSONResponse({"task_id": 2112})
+    def register_account(self, account_data: dict):
+        # TODO: invoke event so this command can executed asynchronously
+        logger.info(f"Registering account: {account_data}")
+        return JSONResponse({"task_id": 2112})
