@@ -1,3 +1,5 @@
+import os
+
 import uvicorn as uvicorn
 from fastapi import Depends, FastAPI
 
@@ -5,6 +7,9 @@ from fast_api_jwt.service import admin
 from .dependencies import verify_jwt
 from .routers import account_router, storyspace_router
 
+if os.getenv('PYTHON_ENV') != 'production':
+    from dotenv import load_dotenv
+    load_dotenv()
 
 def create_app() -> FastAPI:
     current_app = FastAPI(
@@ -27,8 +32,8 @@ def create_app() -> FastAPI:
     return current_app
 
 
-
 app = create_app()
+
 
 @app.get("/")
 async def read_main():

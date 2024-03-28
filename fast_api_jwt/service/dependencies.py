@@ -3,14 +3,17 @@ from typing import Annotated
 
 from fastapi import Header, HTTPException
 from jose import jwt
+from loguru import logger
 
-from fast_api_jwt.utils.jwt_util import JWTUtil
 from fast_api_jwt.config import Config
+from fast_api_jwt.utils.jwt_util import JWTUtil
 
 settings = Config().settings
 
 ERR_AUTH_HEADER_MISSING = "authorization header missing"
 ERR_INCORRECT_API_TOKEN = "Incorrect API token"
+
+
 async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
     if not authorization:
         raise HTTPException(status_code=401, detail=ERR_AUTH_HEADER_MISSING)
@@ -18,7 +21,7 @@ async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
         jot = JWTUtil.decode_jwt(authorization)
     except BaseException as x:
         msg = f"Error decoding token {str(x)}"
-        print(f"[ERROR](Message: {msg})")
+        logger.error(f"[ERROR](Message: {msg})")
         raise HTTPException(status_code=401, detail=msg)
 
     if jot['apiKey'] != settings['API_KEY']:

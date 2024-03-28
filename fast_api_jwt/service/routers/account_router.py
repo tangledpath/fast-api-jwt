@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from loguru import logger
 from starlette.responses import JSONResponse
 
 router = APIRouter(
@@ -12,7 +13,7 @@ router = APIRouter(
 async def get_by_id(account_id: str):
     # TODO: get from db`
 
-    print(f"Getting account_id: {account_id}")
+    logger.info(f"Getting account_id: {account_id}")
     account = {
         'id': account_id,
         'username': 'foobar'
@@ -33,5 +34,5 @@ async def get_by_username(username):
 @router.post('/register')
 def register_account(account_data: dict):
     # TODO: invoke event so this command can executed asynchronously
-    print(f"Registering account: {account_data}")
+    logger.info(f"Registering account: {account_data}")
     return JSONResponse({"task_id": 2112})

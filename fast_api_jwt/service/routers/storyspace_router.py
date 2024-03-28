@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from loguru import logger
 from starlette.responses import JSONResponse
 
 router = APIRouter(
@@ -10,7 +11,7 @@ router = APIRouter(
 
 @router.get("/")
 async def get_by_username(username: str):
-    print(f"Getting storyspace by username: {username}")
+    logger.info(f"Getting storyspace by username: {username}")
     storyspaces = [
         {
             'id': 1,
@@ -26,7 +27,7 @@ async def get_by_username(username: str):
 
 @router.get("/{storyspace_id}")
 async def get_by_id(storyspace_id: str):
-    print(f"Getting storyspace_id: {storyspace_id}")
+    logger.info(f"Getting storyspace_id: {storyspace_id}")
     storyspace = {
         'id': storyspace_id,
         'name': 'barfood'
@@ -38,5 +39,5 @@ async def get_by_id(storyspace_id: str):
 @router.post("/begin")
 async def begin_storyspace(username, storyspace):
     # TODO: invoke event so this command can executed asynchronously
-    print(f"Beginning storyspace: {storyspace} for user {username}")
+    logger.info(f"Beginning storyspace: {storyspace} for user {username}")
     return JSONResponse({"task_id": 2113})

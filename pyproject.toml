@@ -14,6 +14,7 @@ python-jose = {extras = ["cryptography"], version="^3.3.0"}
 uvicorn = {extras = ["standard"], version = "^0.29.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-dotenv = "^1.0.1"
+loguru = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 poetry-plugin-export = "^1.7.1"

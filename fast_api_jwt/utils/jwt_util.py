@@ -3,11 +3,12 @@ import os
 
 from jose import jwt
 
+
 from fast_api_jwt.config import Config
 
+# Load dotenv (not in production):
 if os.getenv('PYTHON_ENV') != 'production':
     from dotenv import load_dotenv
-
     load_dotenv()
 
 
@@ -17,7 +18,7 @@ class JWTUtil:
 
     @classmethod
     def decode_jwt(cls, authorization_header: str):
-            return jwt.decode(authorization_header, cls.KEY, algorithms=[cls.settings['JWT_ALGORITHM']],
+        return jwt.decode(authorization_header, cls.KEY, algorithms=[cls.settings['JWT_ALGORITHM']],
                           audience='fast-api-jwtp-client')
 
     @classmethod
