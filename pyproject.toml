@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "fast-api-jwt"
+version = "0.1.0"
+description = "A sample fast-api service that verifies a JWT with API key."
+authors = ["Steven Miers <steven.miers@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+boto3 = "^1.34.71"
+fastapi = "^0.110.0"
+httpx = "^0.27.0"
+python-jose = {extras = ["cryptography"], version="^3.3.0"}
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-dotenv = "^1.0.1"
+loguru = "^0.7.2"
+
+[tool.poetry.group.dev.dependencies]
+poetry-plugin-export = "^1.7.1"
+ruff-lsp = "^0.0.52"
+pdoc = "^14.4.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.0.1"
+pytest-mock = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
