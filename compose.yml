@@ -2,11 +2,13 @@ version: '3.8'
 
 services:
   lambda_handler:
+    image: terracoil.lambda_handler
     platform: linux/amd64
     build: # "context" and "dockerfile" fields have to be under "build"
       context: .
       dockerfile: Dockerfile.lambda
   fast_api_service:
+    image: terracoil.fast_api_service
     platform: linux/amd64
     build: # "context" and "dockerfile" fields have to be under "build"
       context: .
@@ -18,8 +20,6 @@ services:
          - /app/.venv
     command:
       [
-        "poetry",
-        "run",
         "uvicorn",
         "--host",
         "0.0.0.0",
