@@ -11,7 +11,7 @@ if os.getenv('PYTHON_ENV') != 'production':
     load_dotenv()
 
 
-class AmazonMQ:
+class SQSQueue:
     """Facade class for sending messages via AWS SQS"""
     def __init__(self):
         self.sqs = boto3.resource('sqs')
