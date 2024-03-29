@@ -38,7 +38,7 @@ git clone https://github.com/tangledpath/fast-api-jwt.git
 ## Development
 ### Linting is done via autopep8
 ```bash
-bin/lint.sh
+script/lint.sh
 ```
 
 ### Documentation
@@ -46,7 +46,7 @@ bin/lint.sh
 # Shows in browser
 poetry run pdoc fast_api_jwt/
 # Generates to ./docs
-bin/build.sh
+script/build.sh
 ```
 
 ### Testing

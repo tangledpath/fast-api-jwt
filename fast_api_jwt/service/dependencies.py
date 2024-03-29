@@ -11,7 +11,7 @@ ERR_AUTH_HEADER_MISSING = "authorization header missing"
 ERR_INCORRECT_API_TOKEN = "Incorrect API token"
 
 
-async def verify_jwt(authorization: Annotated[str | None, Header()] = None):
+async def verify_jwt(authorization: Annotated[str | None, Header()] = None) -> None:
     """
     Verify the JWT in the authorization header.  A 401 status code is sent back if
     it is not present, malformed, or does not contain the corrrect apiKey.

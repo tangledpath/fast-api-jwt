@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 
-from fast_api_jwt.service.dependencies import ERR_AUTH_HEADER_MISSING
 from fast_api_jwt.service.main import app
 from fast_api_jwt.utils.jwt_util import JWTUtil
+from fast_api_jwt.service.dependencies import ERR_AUTH_HEADER_MISSING
 
 # Client for testing app:
 client = TestClient(app)

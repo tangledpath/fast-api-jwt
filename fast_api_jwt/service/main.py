@@ -3,15 +3,14 @@ import os
 import uvicorn as uvicorn
 from fastapi import Depends, FastAPI
 
-from fast_api_jwt.service import admin
 from .dependencies import verify_jwt
 from .routers.account_router import AccountRouter
 from .routers.storyspace_router import StoryspaceRouter
 
-# Use dotenv in development and test environments:
 if os.getenv('PYTHON_ENV') != 'production':
     from dotenv import load_dotenv
     load_dotenv()
+
 
 class FastAPIJWTService(FastAPI):
     def __init__(self):
@@ -22,19 +21,12 @@ class FastAPIJWTService(FastAPI):
         )
 
     def create(self) -> FastAPI:
+        """ Creates service.  Includes other routers with dependency injection """
         account_router = AccountRouter()
         storyspace_router = StoryspaceRouter()
 
         self.include_router(account_router.router, dependencies=[Depends(verify_jwt)])
         self.include_router(storyspace_router.router, dependencies=[Depends(verify_jwt)])
-
-        self.include_router(
-            admin.router,
-            prefix="/admin",
-            tags=["admin"],
-            dependencies=[Depends(verify_jwt)],
-            responses={418: {"description": "Admin"}},
-        )
 
         self.router.add_api_route('/', self.root, methods=['GET'])
 
