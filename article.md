@@ -19,10 +19,10 @@ Build a FASTAPI service using a JWT to securely authenticate an API Key.
 <p>&nbsp</p>
 
 ## Use Case
-_This is appropriate for a service meant to be used application(s) also under your control.  If it is generally available to multiple clients, you should probably have an API Key per client.  Even if you do, this is a good way to understand the basic principle of how to do this in FastAPI._
+_This is appropriate for a service meant to be used application(s) also under your control.  If it is generally available to multiple clients, you should probably have an API Key per client.  If that is the case, this is still a good way to understand the basic principle of how to do this in FastAPI._
 
 ## Getting started
-For this example we use [poetry](https://python-poetry.org/) as the dependency and package management.  If you don't like poetry, feel free to use your favorite (pyenv, conda, etc).  To install poetry, see [here](https://python-poetry.org/docs/#installation).  
+For this example we use [poetry](https://python-poetry.org/) as the dependency and package management.  If you don't like poetry, feel free to use your favorite (pyenv, conda, etc.).  To install poetry, see [here](https://python-poetry.org/docs/#installation).  
 
 ### OSX Installation 
 Poetry requires [pipx](https://pipx.pypa.io/stable/installation/).  It can be installed on OSX via [homebrew](https://brew.sh/)  
@@ -132,6 +132,16 @@ async def verify_jwt(authorization: Annotated[str | None, Header()] = None) -> N
 
 As you can see, the `verify_jwt` function accepts the authorization header, which should contain a JWT with an `apiKey`.  We will get into how that is sent when we write tests.  Any client application(s) will do something similar.  For development, the necessary keys are used via a [dotenv](https://pypi.org/project/python-dotenv/) file.  For production, these environment variables should be set in your production environment.  For convenience, the `.env` is included in the [git repository](https://github.com/tangledpath/fast-api-jwt).  Normally, this should not be committed to source control, and a `.env.template` with all secret information removed is added instead.  
 
+### JWT Util
+You may have noticed the usage of [JWUtil](https://github.com/tangledpath/fast-api-jwt/blob/master/fast_api_jwt/utils/jw_util.py):
+```python
+jot = JWTUtil.decode_jwt(authorization)
+```
+
+This is a simple utility class that decodes the JWT with a given authorization header.  It also contains code for encoding a JWT, which is used by the unit tests.  
+
+
+### Environment file
 The [.env file](https://github.com/tangledpath/fast-api-jwt/blob/master/.env) should be at the root of your project and contain these keys/values:
 ```dotenv
 API_KEY=6f16c1a4-0de8-47ca-abbc-d7d02ea0d3ee

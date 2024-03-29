@@ -1,4 +1,4 @@
-#!/script/bash
+#!/bin/bash
 
 #poetry run pdoc fast_api_jwt --logo https://raw.githubusercontent.com/tangledpath/fast-api-jwt/master/fast_api_jwt.png --favicon https://raw.githubusercontent.com/tangledpath/fast-api-jwt/master/fast_api_jwt_sm.png
 poetry run pdoc fast_api_jwt -o ./docs --logo https://raw.githubusercontent.com/tangledpath/fast-api-jwt/master/fast_api_jwt.png --favicon https://raw.githubusercontent.com/tangledpath/fast-api-jwt/master/fast_api_jwt_sm.png

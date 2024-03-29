@@ -36,16 +36,15 @@ Clone repository:
 git clone https://github.com/tangledpath/fast-api-jwt.git
 
 ## Development
-### Linting is done via autopep8
+### Linting 
+Linting is done via autopep8
 ```bash
 script/lint.sh
 ```
 
 ### Documentation
-```
-# Shows in browser
-poetry run pdoc fast_api_jwt/
-# Generates to ./docs
+Generates to [./docs](docs) (as one part of build process).  See [build script](script/build.sh) for more info.
+```bash
 script/build.sh
 ```
 
@@ -54,9 +53,5 @@ script/build.sh
   clear; pytest
 ```
 
-### Building and Publishing
-#### Building
-`poetry build`
-#### Publishing
-Note: `--build` flag build before publishing
-`poetry publish --build -u __token__ -p $PYPI_TOKEN`
+### Building
+`script/build.sh`

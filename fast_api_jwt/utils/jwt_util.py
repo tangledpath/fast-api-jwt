@@ -1,21 +1,25 @@
 import datetime
 import os
+from typing import Dict, Any
 
 from jose import jwt
 
+
 class JWTUtil:
     @classmethod
-    def decode_jwt(cls, authorization_header: str):
+    def decode_jwt(cls, authorization_header: str) -> Dict[str, Any]:
+        """ Decode the JWT from the authorization header and return the decoded JWT (dict)"""
         return jwt.decode(authorization_header, os.getenv('JWT_SECRET_KEY'), algorithms=[os.getenv('JWT_ALGORITHM')],
                           audience='fast-api-jwtp-client')
 
     @classmethod
     def encode_jwt(cls):
         """ Create a token to be used for authorizing API calls """
+        now = datetime.datetime.now(datetime.UTC)
         payload = dict(
-            iat=datetime.datetime.now(datetime.UTC),
-            exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=5),
-            nbf=datetime.datetime.now(datetime.UTC),
+            iat=now,
+            exp=now + datetime.timedelta(minutes=5),
+            nbf=now,
             iss='fast-api-jwtp-client',
             apiKey=os.getenv('API_KEY'),
         )
