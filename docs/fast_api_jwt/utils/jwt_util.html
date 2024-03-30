@@ -42,7 +42,7 @@
                                 <a class="function" href="#JWTUtil.encode_jwt">encode_jwt</a>
                         </li>
                         <li>
-                                <a class="function" href="#JWTUtil.auth_headers">auth_headers</a>
+                                <a class="function" href="#JWTUtil.auth_header">auth_header</a>
                         </li>
                 </ul>
 
@@ -70,38 +70,57 @@
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span> <span class="nn">datetime</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">import</span> <span class="nn">os</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">jose</span> <span class="kn">import</span> <span class="n">jwt</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">jose</span> <span class="kn">import</span> <span class="n">jwt</span><span class="p">,</span> <span class="n">JWTError</span><span class="p">,</span> <span class="n">ExpiredSignatureError</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span> <span class="nn">jose.exceptions</span> <span class="kn">import</span> <span class="n">JWTClaimsError</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="k">class</span> <span class="nc">JWTUtil</span><span class="p">:</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>    <span class="nd">@classmethod</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    <span class="k">def</span> <span class="nf">decode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">authorization_header</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Decode the JWT from the authorization header and return the decoded JWT (dict)&quot;&quot;&quot;</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="k">return</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">authorization_header</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">)],</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>                          <span class="n">audience</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">)</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="nd">@classmethod</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="k">def</span> <span class="nf">encode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a token to be used for authorizing API calls &quot;&quot;&quot;</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>            <span class="n">iat</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>            <span class="n">exp</span><span class="o">=</span><span class="n">now</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>            <span class="n">nbf</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>            <span class="n">iss</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">,</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>            <span class="n">apiKey</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;API_KEY&#39;</span><span class="p">),</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        <span class="p">)</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="n">token</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">))</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        <span class="k">return</span> <span class="n">token</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>    <span class="nd">@classmethod</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="k">def</span> <span class="nf">auth_headers</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>            <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">encode_jwt</span><span class="p">()</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>        <span class="p">}</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="k">class</span> <span class="nc">JWTUtil</span><span class="p">:</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Utility class to decode and encode JWT tokens with a secret key and an api key. &quot;&quot;&quot;</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="nd">@classmethod</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="k">def</span> <span class="nf">decode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">authorization_header</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">            Decode the JWT from the authorization header and return the</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="sd">            decoded JWT (dict)</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">            :param authorization_header: The authorization header</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">            :return: The decoded JWT as a dictionary.</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="sd">            :raises JWTError, ExpiredSignatureError, JWTClaimsError</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="k">return</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">authorization_header</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">)],</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>                          <span class="n">audience</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">)</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="nd">@classmethod</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">encode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">        Returns a JWT token to be used for authorizing API calls</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">        :param api_key: If set to None, the `API_KEY` environment variable is used.</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">             If it is an empty string, the value will not be added to the payload.</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">             Otherwise, the passed in value will be used. This is mainly useful for</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="sd">             testing different scenarios in order to ensure a graceful failure condition.</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>        <span class="n">apiKey</span> <span class="o">=</span> <span class="n">api_key</span> <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;API_KEY&#39;</span><span class="p">)</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>            <span class="n">iat</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>            <span class="n">exp</span><span class="o">=</span><span class="n">now</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>            <span class="n">nbf</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>            <span class="n">iss</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">,</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>        <span class="p">)</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>        <span class="k">if</span> <span class="n">apiKey</span><span class="p">:</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;apiKey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">apiKey</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>        <span class="n">token</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">))</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>        <span class="k">return</span> <span class="n">token</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="nd">@classmethod</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="k">def</span> <span class="nf">auth_header</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Return authorization header with an encoded JWT &quot;&quot;&quot;</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>            <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">encode_jwt</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>        <span class="p">}</span>
 </span></pre></div>
 
 
@@ -117,37 +136,57 @@
 
     </div>
     <a class="headerlink" href="#JWTUtil"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="JWTUtil-9"><a href="#JWTUtil-9"><span class="linenos"> 9</span></a><span class="k">class</span> <span class="nc">JWTUtil</span><span class="p">:</span>
-</span><span id="JWTUtil-10"><a href="#JWTUtil-10"><span class="linenos">10</span></a>    <span class="nd">@classmethod</span>
-</span><span id="JWTUtil-11"><a href="#JWTUtil-11"><span class="linenos">11</span></a>    <span class="k">def</span> <span class="nf">decode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">authorization_header</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-</span><span id="JWTUtil-12"><a href="#JWTUtil-12"><span class="linenos">12</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Decode the JWT from the authorization header and return the decoded JWT (dict)&quot;&quot;&quot;</span>
-</span><span id="JWTUtil-13"><a href="#JWTUtil-13"><span class="linenos">13</span></a>        <span class="k">return</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">authorization_header</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">)],</span>
-</span><span id="JWTUtil-14"><a href="#JWTUtil-14"><span class="linenos">14</span></a>                          <span class="n">audience</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">)</span>
-</span><span id="JWTUtil-15"><a href="#JWTUtil-15"><span class="linenos">15</span></a>
-</span><span id="JWTUtil-16"><a href="#JWTUtil-16"><span class="linenos">16</span></a>    <span class="nd">@classmethod</span>
-</span><span id="JWTUtil-17"><a href="#JWTUtil-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="nf">encode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span id="JWTUtil-18"><a href="#JWTUtil-18"><span class="linenos">18</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a token to be used for authorizing API calls &quot;&quot;&quot;</span>
-</span><span id="JWTUtil-19"><a href="#JWTUtil-19"><span class="linenos">19</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span>
-</span><span id="JWTUtil-20"><a href="#JWTUtil-20"><span class="linenos">20</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-</span><span id="JWTUtil-21"><a href="#JWTUtil-21"><span class="linenos">21</span></a>            <span class="n">iat</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
-</span><span id="JWTUtil-22"><a href="#JWTUtil-22"><span class="linenos">22</span></a>            <span class="n">exp</span><span class="o">=</span><span class="n">now</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
-</span><span id="JWTUtil-23"><a href="#JWTUtil-23"><span class="linenos">23</span></a>            <span class="n">nbf</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
-</span><span id="JWTUtil-24"><a href="#JWTUtil-24"><span class="linenos">24</span></a>            <span class="n">iss</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">,</span>
-</span><span id="JWTUtil-25"><a href="#JWTUtil-25"><span class="linenos">25</span></a>            <span class="n">apiKey</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;API_KEY&#39;</span><span class="p">),</span>
-</span><span id="JWTUtil-26"><a href="#JWTUtil-26"><span class="linenos">26</span></a>        <span class="p">)</span>
-</span><span id="JWTUtil-27"><a href="#JWTUtil-27"><span class="linenos">27</span></a>
-</span><span id="JWTUtil-28"><a href="#JWTUtil-28"><span class="linenos">28</span></a>        <span class="n">token</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">))</span>
-</span><span id="JWTUtil-29"><a href="#JWTUtil-29"><span class="linenos">29</span></a>        <span class="k">return</span> <span class="n">token</span>
-</span><span id="JWTUtil-30"><a href="#JWTUtil-30"><span class="linenos">30</span></a>
-</span><span id="JWTUtil-31"><a href="#JWTUtil-31"><span class="linenos">31</span></a>    <span class="nd">@classmethod</span>
-</span><span id="JWTUtil-32"><a href="#JWTUtil-32"><span class="linenos">32</span></a>    <span class="k">def</span> <span class="nf">auth_headers</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span id="JWTUtil-33"><a href="#JWTUtil-33"><span class="linenos">33</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="JWTUtil-34"><a href="#JWTUtil-34"><span class="linenos">34</span></a>            <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">encode_jwt</span><span class="p">()</span>
-</span><span id="JWTUtil-35"><a href="#JWTUtil-35"><span class="linenos">35</span></a>        <span class="p">}</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="JWTUtil-10"><a href="#JWTUtil-10"><span class="linenos">10</span></a><span class="k">class</span> <span class="nc">JWTUtil</span><span class="p">:</span>
+</span><span id="JWTUtil-11"><a href="#JWTUtil-11"><span class="linenos">11</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Utility class to decode and encode JWT tokens with a secret key and an api key. &quot;&quot;&quot;</span>
+</span><span id="JWTUtil-12"><a href="#JWTUtil-12"><span class="linenos">12</span></a>    <span class="nd">@classmethod</span>
+</span><span id="JWTUtil-13"><a href="#JWTUtil-13"><span class="linenos">13</span></a>    <span class="k">def</span> <span class="nf">decode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">authorization_header</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+</span><span id="JWTUtil-14"><a href="#JWTUtil-14"><span class="linenos">14</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="JWTUtil-15"><a href="#JWTUtil-15"><span class="linenos">15</span></a><span class="sd">            Decode the JWT from the authorization header and return the</span>
+</span><span id="JWTUtil-16"><a href="#JWTUtil-16"><span class="linenos">16</span></a><span class="sd">            decoded JWT (dict)</span>
+</span><span id="JWTUtil-17"><a href="#JWTUtil-17"><span class="linenos">17</span></a>
+</span><span id="JWTUtil-18"><a href="#JWTUtil-18"><span class="linenos">18</span></a><span class="sd">            :param authorization_header: The authorization header</span>
+</span><span id="JWTUtil-19"><a href="#JWTUtil-19"><span class="linenos">19</span></a><span class="sd">            :return: The decoded JWT as a dictionary.</span>
+</span><span id="JWTUtil-20"><a href="#JWTUtil-20"><span class="linenos">20</span></a>
+</span><span id="JWTUtil-21"><a href="#JWTUtil-21"><span class="linenos">21</span></a><span class="sd">            :raises JWTError, ExpiredSignatureError, JWTClaimsError</span>
+</span><span id="JWTUtil-22"><a href="#JWTUtil-22"><span class="linenos">22</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="JWTUtil-23"><a href="#JWTUtil-23"><span class="linenos">23</span></a>        <span class="k">return</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">authorization_header</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">)],</span>
+</span><span id="JWTUtil-24"><a href="#JWTUtil-24"><span class="linenos">24</span></a>                          <span class="n">audience</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">)</span>
+</span><span id="JWTUtil-25"><a href="#JWTUtil-25"><span class="linenos">25</span></a>
+</span><span id="JWTUtil-26"><a href="#JWTUtil-26"><span class="linenos">26</span></a>    <span class="nd">@classmethod</span>
+</span><span id="JWTUtil-27"><a href="#JWTUtil-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="nf">encode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="JWTUtil-28"><a href="#JWTUtil-28"><span class="linenos">28</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="JWTUtil-29"><a href="#JWTUtil-29"><span class="linenos">29</span></a><span class="sd">        Returns a JWT token to be used for authorizing API calls</span>
+</span><span id="JWTUtil-30"><a href="#JWTUtil-30"><span class="linenos">30</span></a><span class="sd">        :param api_key: If set to None, the `API_KEY` environment variable is used.</span>
+</span><span id="JWTUtil-31"><a href="#JWTUtil-31"><span class="linenos">31</span></a><span class="sd">             If it is an empty string, the value will not be added to the payload.</span>
+</span><span id="JWTUtil-32"><a href="#JWTUtil-32"><span class="linenos">32</span></a><span class="sd">             Otherwise, the passed in value will be used. This is mainly useful for</span>
+</span><span id="JWTUtil-33"><a href="#JWTUtil-33"><span class="linenos">33</span></a><span class="sd">             testing different scenarios in order to ensure a graceful failure condition.</span>
+</span><span id="JWTUtil-34"><a href="#JWTUtil-34"><span class="linenos">34</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="JWTUtil-35"><a href="#JWTUtil-35"><span class="linenos">35</span></a>        <span class="n">apiKey</span> <span class="o">=</span> <span class="n">api_key</span> <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;API_KEY&#39;</span><span class="p">)</span>
+</span><span id="JWTUtil-36"><a href="#JWTUtil-36"><span class="linenos">36</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span>
+</span><span id="JWTUtil-37"><a href="#JWTUtil-37"><span class="linenos">37</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+</span><span id="JWTUtil-38"><a href="#JWTUtil-38"><span class="linenos">38</span></a>            <span class="n">iat</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+</span><span id="JWTUtil-39"><a href="#JWTUtil-39"><span class="linenos">39</span></a>            <span class="n">exp</span><span class="o">=</span><span class="n">now</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+</span><span id="JWTUtil-40"><a href="#JWTUtil-40"><span class="linenos">40</span></a>            <span class="n">nbf</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+</span><span id="JWTUtil-41"><a href="#JWTUtil-41"><span class="linenos">41</span></a>            <span class="n">iss</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">,</span>
+</span><span id="JWTUtil-42"><a href="#JWTUtil-42"><span class="linenos">42</span></a>        <span class="p">)</span>
+</span><span id="JWTUtil-43"><a href="#JWTUtil-43"><span class="linenos">43</span></a>        <span class="k">if</span> <span class="n">apiKey</span><span class="p">:</span>
+</span><span id="JWTUtil-44"><a href="#JWTUtil-44"><span class="linenos">44</span></a>            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;apiKey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">apiKey</span>
+</span><span id="JWTUtil-45"><a href="#JWTUtil-45"><span class="linenos">45</span></a>
+</span><span id="JWTUtil-46"><a href="#JWTUtil-46"><span class="linenos">46</span></a>        <span class="n">token</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">))</span>
+</span><span id="JWTUtil-47"><a href="#JWTUtil-47"><span class="linenos">47</span></a>        <span class="k">return</span> <span class="n">token</span>
+</span><span id="JWTUtil-48"><a href="#JWTUtil-48"><span class="linenos">48</span></a>
+</span><span id="JWTUtil-49"><a href="#JWTUtil-49"><span class="linenos">49</span></a>    <span class="nd">@classmethod</span>
+</span><span id="JWTUtil-50"><a href="#JWTUtil-50"><span class="linenos">50</span></a>    <span class="k">def</span> <span class="nf">auth_header</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="JWTUtil-51"><a href="#JWTUtil-51"><span class="linenos">51</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Return authorization header with an encoded JWT &quot;&quot;&quot;</span>
+</span><span id="JWTUtil-52"><a href="#JWTUtil-52"><span class="linenos">52</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="JWTUtil-53"><a href="#JWTUtil-53"><span class="linenos">53</span></a>            <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">encode_jwt</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
+</span><span id="JWTUtil-54"><a href="#JWTUtil-54"><span class="linenos">54</span></a>        <span class="p">}</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Utility class to decode and encode JWT tokens with a secret key and an api key.</p>
+</div>
+
 
                             <div id="JWTUtil.decode_jwt" class="classattr">
                                         <input id="JWTUtil.decode_jwt-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -161,15 +200,38 @@
 
     </div>
     <a class="headerlink" href="#JWTUtil.decode_jwt"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="JWTUtil.decode_jwt-10"><a href="#JWTUtil.decode_jwt-10"><span class="linenos">10</span></a>    <span class="nd">@classmethod</span>
-</span><span id="JWTUtil.decode_jwt-11"><a href="#JWTUtil.decode_jwt-11"><span class="linenos">11</span></a>    <span class="k">def</span> <span class="nf">decode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">authorization_header</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-</span><span id="JWTUtil.decode_jwt-12"><a href="#JWTUtil.decode_jwt-12"><span class="linenos">12</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Decode the JWT from the authorization header and return the decoded JWT (dict)&quot;&quot;&quot;</span>
-</span><span id="JWTUtil.decode_jwt-13"><a href="#JWTUtil.decode_jwt-13"><span class="linenos">13</span></a>        <span class="k">return</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">authorization_header</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">)],</span>
-</span><span id="JWTUtil.decode_jwt-14"><a href="#JWTUtil.decode_jwt-14"><span class="linenos">14</span></a>                          <span class="n">audience</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="JWTUtil.decode_jwt-12"><a href="#JWTUtil.decode_jwt-12"><span class="linenos">12</span></a>    <span class="nd">@classmethod</span>
+</span><span id="JWTUtil.decode_jwt-13"><a href="#JWTUtil.decode_jwt-13"><span class="linenos">13</span></a>    <span class="k">def</span> <span class="nf">decode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">authorization_header</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+</span><span id="JWTUtil.decode_jwt-14"><a href="#JWTUtil.decode_jwt-14"><span class="linenos">14</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="JWTUtil.decode_jwt-15"><a href="#JWTUtil.decode_jwt-15"><span class="linenos">15</span></a><span class="sd">            Decode the JWT from the authorization header and return the</span>
+</span><span id="JWTUtil.decode_jwt-16"><a href="#JWTUtil.decode_jwt-16"><span class="linenos">16</span></a><span class="sd">            decoded JWT (dict)</span>
+</span><span id="JWTUtil.decode_jwt-17"><a href="#JWTUtil.decode_jwt-17"><span class="linenos">17</span></a>
+</span><span id="JWTUtil.decode_jwt-18"><a href="#JWTUtil.decode_jwt-18"><span class="linenos">18</span></a><span class="sd">            :param authorization_header: The authorization header</span>
+</span><span id="JWTUtil.decode_jwt-19"><a href="#JWTUtil.decode_jwt-19"><span class="linenos">19</span></a><span class="sd">            :return: The decoded JWT as a dictionary.</span>
+</span><span id="JWTUtil.decode_jwt-20"><a href="#JWTUtil.decode_jwt-20"><span class="linenos">20</span></a>
+</span><span id="JWTUtil.decode_jwt-21"><a href="#JWTUtil.decode_jwt-21"><span class="linenos">21</span></a><span class="sd">            :raises JWTError, ExpiredSignatureError, JWTClaimsError</span>
+</span><span id="JWTUtil.decode_jwt-22"><a href="#JWTUtil.decode_jwt-22"><span class="linenos">22</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="JWTUtil.decode_jwt-23"><a href="#JWTUtil.decode_jwt-23"><span class="linenos">23</span></a>        <span class="k">return</span> <span class="n">jwt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">authorization_header</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithms</span><span class="o">=</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">)],</span>
+</span><span id="JWTUtil.decode_jwt-24"><a href="#JWTUtil.decode_jwt-24"><span class="linenos">24</span></a>                          <span class="n">audience</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">)</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Decode the JWT from the authorization header and return the decoded JWT (dict)</p>
+            <div class="docstring"><p>Decode the JWT from the authorization header and return the
+decoded JWT (dict)</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>authorization_header</strong>:  The authorization header</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>The decoded JWT as a dictionary.</p>
+</blockquote>
+
+<p>:raises JWTError, ExpiredSignatureError, JWTClaimsError</p>
 </div>
 
 
@@ -180,55 +242,75 @@
                     <div class="decorator">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">encode_jwt</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span></span><span class="return-annotation">):</span></span>
+        <span class="name">encode_jwt</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="nb">str</span>:</span></span>
 
                 <label class="view-source-button" for="JWTUtil.encode_jwt-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#JWTUtil.encode_jwt"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="JWTUtil.encode_jwt-16"><a href="#JWTUtil.encode_jwt-16"><span class="linenos">16</span></a>    <span class="nd">@classmethod</span>
-</span><span id="JWTUtil.encode_jwt-17"><a href="#JWTUtil.encode_jwt-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="nf">encode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span id="JWTUtil.encode_jwt-18"><a href="#JWTUtil.encode_jwt-18"><span class="linenos">18</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a token to be used for authorizing API calls &quot;&quot;&quot;</span>
-</span><span id="JWTUtil.encode_jwt-19"><a href="#JWTUtil.encode_jwt-19"><span class="linenos">19</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span>
-</span><span id="JWTUtil.encode_jwt-20"><a href="#JWTUtil.encode_jwt-20"><span class="linenos">20</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-</span><span id="JWTUtil.encode_jwt-21"><a href="#JWTUtil.encode_jwt-21"><span class="linenos">21</span></a>            <span class="n">iat</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
-</span><span id="JWTUtil.encode_jwt-22"><a href="#JWTUtil.encode_jwt-22"><span class="linenos">22</span></a>            <span class="n">exp</span><span class="o">=</span><span class="n">now</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
-</span><span id="JWTUtil.encode_jwt-23"><a href="#JWTUtil.encode_jwt-23"><span class="linenos">23</span></a>            <span class="n">nbf</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
-</span><span id="JWTUtil.encode_jwt-24"><a href="#JWTUtil.encode_jwt-24"><span class="linenos">24</span></a>            <span class="n">iss</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">,</span>
-</span><span id="JWTUtil.encode_jwt-25"><a href="#JWTUtil.encode_jwt-25"><span class="linenos">25</span></a>            <span class="n">apiKey</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;API_KEY&#39;</span><span class="p">),</span>
-</span><span id="JWTUtil.encode_jwt-26"><a href="#JWTUtil.encode_jwt-26"><span class="linenos">26</span></a>        <span class="p">)</span>
-</span><span id="JWTUtil.encode_jwt-27"><a href="#JWTUtil.encode_jwt-27"><span class="linenos">27</span></a>
-</span><span id="JWTUtil.encode_jwt-28"><a href="#JWTUtil.encode_jwt-28"><span class="linenos">28</span></a>        <span class="n">token</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">))</span>
-</span><span id="JWTUtil.encode_jwt-29"><a href="#JWTUtil.encode_jwt-29"><span class="linenos">29</span></a>        <span class="k">return</span> <span class="n">token</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="JWTUtil.encode_jwt-26"><a href="#JWTUtil.encode_jwt-26"><span class="linenos">26</span></a>    <span class="nd">@classmethod</span>
+</span><span id="JWTUtil.encode_jwt-27"><a href="#JWTUtil.encode_jwt-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="nf">encode_jwt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="JWTUtil.encode_jwt-28"><a href="#JWTUtil.encode_jwt-28"><span class="linenos">28</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="JWTUtil.encode_jwt-29"><a href="#JWTUtil.encode_jwt-29"><span class="linenos">29</span></a><span class="sd">        Returns a JWT token to be used for authorizing API calls</span>
+</span><span id="JWTUtil.encode_jwt-30"><a href="#JWTUtil.encode_jwt-30"><span class="linenos">30</span></a><span class="sd">        :param api_key: If set to None, the `API_KEY` environment variable is used.</span>
+</span><span id="JWTUtil.encode_jwt-31"><a href="#JWTUtil.encode_jwt-31"><span class="linenos">31</span></a><span class="sd">             If it is an empty string, the value will not be added to the payload.</span>
+</span><span id="JWTUtil.encode_jwt-32"><a href="#JWTUtil.encode_jwt-32"><span class="linenos">32</span></a><span class="sd">             Otherwise, the passed in value will be used. This is mainly useful for</span>
+</span><span id="JWTUtil.encode_jwt-33"><a href="#JWTUtil.encode_jwt-33"><span class="linenos">33</span></a><span class="sd">             testing different scenarios in order to ensure a graceful failure condition.</span>
+</span><span id="JWTUtil.encode_jwt-34"><a href="#JWTUtil.encode_jwt-34"><span class="linenos">34</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="JWTUtil.encode_jwt-35"><a href="#JWTUtil.encode_jwt-35"><span class="linenos">35</span></a>        <span class="n">apiKey</span> <span class="o">=</span> <span class="n">api_key</span> <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;API_KEY&#39;</span><span class="p">)</span>
+</span><span id="JWTUtil.encode_jwt-36"><a href="#JWTUtil.encode_jwt-36"><span class="linenos">36</span></a>        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span>
+</span><span id="JWTUtil.encode_jwt-37"><a href="#JWTUtil.encode_jwt-37"><span class="linenos">37</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+</span><span id="JWTUtil.encode_jwt-38"><a href="#JWTUtil.encode_jwt-38"><span class="linenos">38</span></a>            <span class="n">iat</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+</span><span id="JWTUtil.encode_jwt-39"><a href="#JWTUtil.encode_jwt-39"><span class="linenos">39</span></a>            <span class="n">exp</span><span class="o">=</span><span class="n">now</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+</span><span id="JWTUtil.encode_jwt-40"><a href="#JWTUtil.encode_jwt-40"><span class="linenos">40</span></a>            <span class="n">nbf</span><span class="o">=</span><span class="n">now</span><span class="p">,</span>
+</span><span id="JWTUtil.encode_jwt-41"><a href="#JWTUtil.encode_jwt-41"><span class="linenos">41</span></a>            <span class="n">iss</span><span class="o">=</span><span class="s1">&#39;fast-api-jwtp-client&#39;</span><span class="p">,</span>
+</span><span id="JWTUtil.encode_jwt-42"><a href="#JWTUtil.encode_jwt-42"><span class="linenos">42</span></a>        <span class="p">)</span>
+</span><span id="JWTUtil.encode_jwt-43"><a href="#JWTUtil.encode_jwt-43"><span class="linenos">43</span></a>        <span class="k">if</span> <span class="n">apiKey</span><span class="p">:</span>
+</span><span id="JWTUtil.encode_jwt-44"><a href="#JWTUtil.encode_jwt-44"><span class="linenos">44</span></a>            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;apiKey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">apiKey</span>
+</span><span id="JWTUtil.encode_jwt-45"><a href="#JWTUtil.encode_jwt-45"><span class="linenos">45</span></a>
+</span><span id="JWTUtil.encode_jwt-46"><a href="#JWTUtil.encode_jwt-46"><span class="linenos">46</span></a>        <span class="n">token</span> <span class="o">=</span> <span class="n">jwt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_SECRET_KEY&#39;</span><span class="p">),</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;JWT_ALGORITHM&#39;</span><span class="p">))</span>
+</span><span id="JWTUtil.encode_jwt-47"><a href="#JWTUtil.encode_jwt-47"><span class="linenos">47</span></a>        <span class="k">return</span> <span class="n">token</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Create a token to be used for authorizing API calls</p>
+            <div class="docstring"><p>Returns a JWT token to be used for authorizing API calls</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>api_key</strong>:  If set to None, the <code>API_KEY</code> environment variable is used.
+If it is an empty string, the value will not be added to the payload.
+Otherwise, the passed in value will be used. This is mainly useful for
+testing different scenarios in order to ensure a graceful failure condition.</li>
+</ul>
 </div>
 
 
                             </div>
-                            <div id="JWTUtil.auth_headers" class="classattr">
-                                        <input id="JWTUtil.auth_headers-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                            <div id="JWTUtil.auth_header" class="classattr">
+                                        <input id="JWTUtil.auth_header-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
                     <div class="decorator">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">auth_headers</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span></span><span class="return-annotation">):</span></span>
+        <span class="name">auth_header</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="nb">str</span>:</span></span>
 
-                <label class="view-source-button" for="JWTUtil.auth_headers-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="JWTUtil.auth_header-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#JWTUtil.auth_headers"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="JWTUtil.auth_headers-31"><a href="#JWTUtil.auth_headers-31"><span class="linenos">31</span></a>    <span class="nd">@classmethod</span>
-</span><span id="JWTUtil.auth_headers-32"><a href="#JWTUtil.auth_headers-32"><span class="linenos">32</span></a>    <span class="k">def</span> <span class="nf">auth_headers</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-</span><span id="JWTUtil.auth_headers-33"><a href="#JWTUtil.auth_headers-33"><span class="linenos">33</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="JWTUtil.auth_headers-34"><a href="#JWTUtil.auth_headers-34"><span class="linenos">34</span></a>            <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">encode_jwt</span><span class="p">()</span>
-</span><span id="JWTUtil.auth_headers-35"><a href="#JWTUtil.auth_headers-35"><span class="linenos">35</span></a>        <span class="p">}</span>
+    <a class="headerlink" href="#JWTUtil.auth_header"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="JWTUtil.auth_header-49"><a href="#JWTUtil.auth_header-49"><span class="linenos">49</span></a>    <span class="nd">@classmethod</span>
+</span><span id="JWTUtil.auth_header-50"><a href="#JWTUtil.auth_header-50"><span class="linenos">50</span></a>    <span class="k">def</span> <span class="nf">auth_header</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="JWTUtil.auth_header-51"><a href="#JWTUtil.auth_header-51"><span class="linenos">51</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Return authorization header with an encoded JWT &quot;&quot;&quot;</span>
+</span><span id="JWTUtil.auth_header-52"><a href="#JWTUtil.auth_header-52"><span class="linenos">52</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="JWTUtil.auth_header-53"><a href="#JWTUtil.auth_header-53"><span class="linenos">53</span></a>            <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">encode_jwt</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
+</span><span id="JWTUtil.auth_header-54"><a href="#JWTUtil.auth_header-54"><span class="linenos">54</span></a>        <span class="p">}</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Return authorization header with an encoded JWT</p>
+</div>
+
 
                             </div>
                 </section>

@@ -52,23 +52,26 @@ import os
 import uvicorn as uvicorn
 from fastapi import FastAPI
 
-# Use dotenv in development and test environments:
-if os.getenv('PYTHON_ENV') != 'production':
-    from dotenv import load_dotenv
-    load_dotenv()
-
 class FastAPIJWTService(FastAPI):
+    """
+    Our main FastAPI service.  When created, it adds other routers
+    and dependency injection as needed.
+    """
+    
     def __init__(self):
+        """ Constructor for FastAPIJWTService """
         super().__init__(
             title="Fast API JWT Example",
             description="Fast API JWT Example",
             version="1.0.0",
         )
 
-    def create(self) -> FastAPI:
+    def build(self) -> FastAPI:
+        """ Creates service.  Will include other routers with dependency injection """
         self.router.add_api_route('/', self.root, methods=['GET'])
 
     async def root(self):
+        """ Our root (/) endpoint implementation. """
         return {"msg": "Hello from our fast-api-jwt app."}
 
 
@@ -107,6 +110,7 @@ from fast_api_jwt.utils.jwt_util import JWTUtil
 # Error messages:
 ERR_AUTH_HEADER_MISSING = "authorization header missing"
 ERR_INCORRECT_API_TOKEN = "Incorrect API token"
+ERR_MISSING_API_TOKEN = "Missing API token"
 
 
 async def verify_jwt(authorization: Annotated[str | None, Header()] = None) -> None:
@@ -114,35 +118,83 @@ async def verify_jwt(authorization: Annotated[str | None, Header()] = None) -> N
     Verify the JWT in the authorization header.  A 401 status code is sent back if
     it is not present, malformed, or does not contain the corrrect apiKey.
     :param authorization: The authorization header
-    :return:
+    :return: None
+    :raises HTTPException: Results in a 404 with error message if something goes wrong
     """
     if not authorization:
         raise HTTPException(status_code=401, detail=ERR_AUTH_HEADER_MISSING)
     try:
         jot = JWTUtil.decode_jwt(authorization)
     except BaseException as x:
-        msg = f"Error decoding token {str(x)}"
+        msg = f"Error decoding token: {repr(x)}"
         logger.error(f"[ERROR](Message: {msg})")
         raise HTTPException(status_code=401, detail=msg)
 
-    if jot['apiKey'] != os.getenv('API_KEY'):
+    if ('apiKey' not in jot) or not jot['apiKey']:
+        raise HTTPException(status_code=401, detail=ERR_MISSING_API_TOKEN)
+    elif jot['apiKey'] != os.getenv('API_KEY'):
         raise HTTPException(status_code=401, detail=ERR_INCORRECT_API_TOKEN)
-
 ```
 
 As you can see, the `verify_jwt` function accepts the authorization header, which should contain a JWT with an `apiKey`.  We will get into how that is sent when we write tests.  Any client application(s) will do something similar.  For development, the necessary keys are used via a [dotenv](https://pypi.org/project/python-dotenv/) file.  For production, these environment variables should be set in your production environment.  For convenience, the `.env` is included in the [git repository](https://github.com/tangledpath/fast-api-jwt).  Normally, this should not be committed to source control, and a `.env.template` with all secret information removed is added instead.  
 
 ### JWT Util
-You may have noticed the usage of [JWUtil](https://github.com/tangledpath/fast-api-jwt/blob/master/fast_api_jwt/utils/jw_util.py):
+You may have noticed the usage of [JWUtil](https://github.com/tangledpath/fast-api-jwt/blob/article1/fast_api_jwt/utils/jw_util.py):
 ```python
 jot = JWTUtil.decode_jwt(authorization)
 ```
 
-This is a simple utility class that decodes the JWT with a given authorization header.  It also contains code for encoding a JWT, which is used by the unit tests.  
+This is a simple utility class that decodes the JWT with a given authorization header.  It also contains code for encoding a JWT, which is used by the unit tests.  It uses [Jose](https://pypi.org/project/python-jose/) to encode and decode.  Here it is in its entirety:
+```python
+import datetime
+import os
+from typing import Dict, Any, Union
+
+from jose import jwt
+
+
+class JWTUtil:
+    """ Utility class to decode and encode JWT tokens with a secret key and an api key. """
+    @classmethod
+    def decode_jwt(cls, authorization_header: str) -> Dict[str, Any]:
+        """ Decode the JWT from the authorization header and return the decoded JWT (dict)"""
+        return jwt.decode(authorization_header, os.getenv('JWT_SECRET_KEY'), algorithms=[os.getenv('JWT_ALGORITHM')],
+                          audience='fast-api-jwtp-client')
+
+    @classmethod
+    def encode_jwt(cls, api_key: Union[str, None]=None) -> str:
+        """
+        Returns a JWT token to be used for authorizing API calls
+        :param api_key: If set to None, the `API_KEY` environment variable is used.
+             If it is an empty string, the value will not be added to the payload.
+             Otherwise, the passed in value will be used. This is mainly useful for
+             testing different scenarios in order to ensure a graceful failure condition.
+        """
+        apiKey = api_key if api_key is not None else os.getenv('API_KEY')
+        now = datetime.datetime.now(datetime.UTC)
+        payload = dict(
+            iat=now,
+            exp=now + datetime.timedelta(minutes=5),
+            nbf=now,
+            iss='fast-api-jwtp-client',
+        )
+        if apiKey:
+            payload['apiKey'] = apiKey
+
+        token = jwt.encode(payload, os.getenv('JWT_SECRET_KEY'), algorithm=os.getenv('JWT_ALGORITHM'))
+        return token
+
+    @classmethod
+    def auth_header(cls, api_key: Union[str, None]=None) -> str:
+        """ Return authorization header with an encoded JWT """
+        return {
+            'Authorization': cls.encode_jwt(api_key=api_key)
+        }
+```
 
 
 ### Environment file
-The [.env file](https://github.com/tangledpath/fast-api-jwt/blob/master/.env) should be at the root of your project and contain these keys/values:
+The [.env file](https://github.com/tangledpath/fast-api-jwt/blob/article1/.env) should be at the root of your project and contain these keys/values:
 ```dotenv
 API_KEY=6f16c1a4-0de8-47ca-abbc-d7d02ea0d3ee
 JWT_ALGORITHM="HS256"
@@ -153,14 +205,14 @@ Note that the `API_KEY` is a random `UUID`, and can be changed to anything else.
 
 ## Injecting the dependencies
 Now, we will make use of our verification function.  We will also add some other routes to our `fast_api_jwt/service/main.py`.  
-* Add [account_router.py](https://github.com/tangledpath/fast-api-jwt/blob/master/fast_api_jwt/service/routers/account_router.py) and [storyspace_router.py](https://github.com/tangledpath/fast-api-jwt/blob/master/fast_api_jwt/service/routers/storyspace_router.py) to `fast_api_jwt/service/routers`.  They can be found at https://github.com/tangledpath/fast-api-jwt/tree/master/fast_api_jwt/service/routers.
+* Add [account_router.py](https://github.com/tangledpath/fast-api-jwt/blob/article1/fast_api_jwt/service/routers/account_router.py) and [storyspace_router.py](https://github.com/tangledpath/fast-api-jwt/blob/article1/fast_api_jwt/service/routers/storyspace_router.py) to `fast_api_jwt/service/routers`.  They can be found at https://github.com/tangledpath/fast-api-jwt/tree/master/fast_api_jwt/service/routers.
 * Add these imports to `fast_api_jwt/service/main.py`
   ```python
   from .dependencies import verify_jwt
   from .routers.account_router import AccountRouter
   from .routers.storyspace_router import StoryspaceRouter
   ```
-* Add this code to the `create` method of `FastAPIJWTService`: 
+* Add this code to the `build` method of `FastAPIJWTService`: 
   ```python
   account_router = AccountRouter()
   storyspace_router = StoryspaceRouter()
@@ -169,7 +221,7 @@ Now, we will make use of our verification function.  We will also add some other
   self.include_router(storyspace_router.router, dependencies=[Depends(verify_jwt)])
   ```
 * Note the dependency injection syntax: `dependencies=[Depends(verify_jwt)]`.  Note, we left the root (`/`) endpoint unsecured, so we can still visit it as a sanity check.  
-* `fast_api_jwt/service/main.py` should now look like the [main.py](https://github.com/tangledpath/fast-api-jwt/blob/master/fast_api_jwt/service/main.py) in the git repository.  
+* `fast_api_jwt/service/main.py` should now look like the [main.py](https://github.com/tangledpath/fast-api-jwt/blob/article1/fast_api_jwt/service/main.py) in the git repository.  
 
 ## Testing
 Our tests should verify that the absence of a JWT or API Key causes a 401 response on any route except `/` and `/docs`.  Conversely, they should also verify that passing the correct JWT/API Key will result in success (200 response).  We will also verify the returned content is as expected.  You can see in our routers that the content in question is hardcoded.  We will hook it up to a database later in the series.
@@ -186,16 +238,68 @@ client = TestClient(app)
 ```
 This allows us to invoke our service, e.g.,
 ```python
-response = client.get("/service/account/stevenm")
+response = client.get("/service/account/ACCOUNT_USERNAME")
 ```
 
-We also need to import a utility to encode the JWT so it is available on our request, as well as an error message that might be returned:
+We also need to import our [JWT utility](https://github.com/tangledpath/fast-api-jwt/blob/article1/fast_api_jwt/utils/jw_util.py) from above in order to encode the JWT and make it available as a request header, as well as 
+the error messages that will be returned if any part of the request is incorrect.
 ```python
+from fast_api_jwt.service.dependencies import ERR_AUTH_HEADER_MISSING, ERR_INCORRECT_API_TOKEN, ERR_MISSING_API_TOKEN
 from fast_api_jwt.utils.jwt_util import JWTUtil
-from fast_api_jwt.service.dependencies import ERR_AUTH_HEADER_MISSING
 ```
 
+Here are a few of the tests that can be found within [test_router_account.py](https://github.com/tangledpath/fast-api-jwt/blob/article1/fast_api_jwt/tests/test_router_account.py).  The make sure that results are returned if the JWT and API Key are correct, and that we fail gracefully if something isn't correct. 
+
+```python
+# fast_api_jwt/tests/test_router_account.py
+from fastapi.testclient import TestClient
+
+from fast_api_jwt.service.dependencies import ERR_AUTH_HEADER_MISSING, ERR_INCORRECT_API_TOKEN, ERR_MISSING_API_TOKEN
+from fast_api_jwt.service.main import app
+from fast_api_jwt.utils.jwt_util import JWTUtil
+
+""" Client for testing app: """
+client = TestClient(app)
+def test_by_username():
+    """ Test with JWT """
+    response = client.get("/service/account/stevenm", headers=JWTUtil.auth_header())
+    assert response.status_code == 200
+    assert response.json() == {
+        'id': '2112',
+        'username': 'stevenm'
+    }
+
+
+def test_by_username_bad_auth_header():
+    """ Test using JWT with no api key """
+    response = client.get("/service/account/stevenm", headers={'Authorization': 'aslddasskdj28283382jsdk8'})
+    assert response.status_code == 401
+    print("response.json():", response.json())
+    assert response.json()['detail'].startswith("Error decoding token:")
+
+
+def test_by_username_no_api_key():
+    """ Test using JWT with no api key """
+    response = client.get("/service/account/stevenm", headers=JWTUtil.auth_header(api_key=""))
+    assert response.status_code == 401
+    assert response.json() == {"detail": ERR_MISSING_API_TOKEN}
+
+
+def test_by_username_incorrect_api_key():
+    """ Test using JWT with wrong api key: """
+    response = client.get("/service/account/stevenm", headers=JWTUtil.auth_header(api_key="gobble"))
+    assert response.status_code == 401
+    assert response.json() == {"detail": ERR_INCORRECT_API_TOKEN}
+
+
+def test_by_account_id_no_jwt():
+    """ Test with no JWT """
+    response = client.get("/service/account/?account_id=2112")
+    assert response.status_code == 401
+    assert response.json() == {"detail": ERR_AUTH_HEADER_MISSING}
+
+```
 
 ## Summary
-There we have it; a FASTAPI that uses a JWT to verify the API Key.
-This project can be found in its entirety at https://github.com/tangledpath/fast-api-jwt
+There we have it; a FastAPI service that uses a JWT to verify the API Key.
+This project can be found in its entirety at https://github.com/tangledpath/fast-api-jwt.  In our next article we'll explore the use of a messaging system as part of a [CQRS](https://martinfowler.com/bliki/CQRS.html) System. We will also get this ready for deployment using [Docker](https://www.docker.com/) and [AWS](https://aws.amazon.com/).  
