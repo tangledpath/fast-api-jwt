@@ -21,7 +21,7 @@ FastAPI Service with JWT verification and tests.
 
 ## Article
 Associated article can be found at these locations:
-* Personal portfolio: 
+* Personal portfolio: http://localhost:4000/fastapi/python/jwt/authentication/security/fast-api-with-jwt/
 * LinkedIn:
 * Medium:
 
