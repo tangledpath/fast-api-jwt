@@ -20,6 +20,7 @@ async def verify_jwt(authorization: Annotated[str | None, Header()] = None) -> N
     :return: None
     :raises HTTPException: Results in a 404 with error message if something goes wrong
     """
+
     if not authorization:
         raise HTTPException(status_code=401, detail=ERR_AUTH_HEADER_MISSING)
     try:
