@@ -4,7 +4,6 @@
 .idea
 
 ## 3rdparty:
-*.png
 .vscode
 .nova
 

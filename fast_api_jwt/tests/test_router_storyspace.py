@@ -7,6 +7,7 @@ from fast_api_jwt.utils.jwt_util import JWTUtil
 # Client for testing app:
 client = TestClient(app)
 
+
 def test_by_username_no_jwt():
     response = client.get("/service/storyspaces?username=stevenm")
     assert response.status_code == 401
@@ -14,7 +15,7 @@ def test_by_username_no_jwt():
 
 
 def test_by_username():
-    response = client.get("/service/storyspaces?username=stevenm", headers=JWTUtil.auth_headers())
+    response = client.get("/service/storyspaces?username=stevenm", headers=JWTUtil.auth_header())
     assert response.status_code == 200
     assert response.json() == [
         {
@@ -27,13 +28,15 @@ def test_by_username():
         }
     ]
 
+
 def test_by_id_no_jwt():
     response = client.get("/service/storyspaces/2113")
     assert response.status_code == 401
     assert response.json() == {"detail": ERR_AUTH_HEADER_MISSING}
 
+
 def test_by_id():
-    response = client.get("/service/storyspaces/2113", headers=JWTUtil.auth_headers())
+    response = client.get("/service/storyspaces/2113", headers=JWTUtil.auth_header())
     assert response.status_code == 200
     assert response.json() == {
         'id': '2113',

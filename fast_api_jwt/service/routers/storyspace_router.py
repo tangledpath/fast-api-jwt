@@ -41,4 +41,3 @@ class StoryspaceRouter():
         # TODO: invoke event so this command can executed asynchronously
         logger.info(f"Beginning storyspace: {storyspace} for user {username}")
         return JSONResponse({"task_id": 2113})
-
