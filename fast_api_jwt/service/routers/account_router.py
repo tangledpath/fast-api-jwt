@@ -15,7 +15,7 @@ class AccountRouter():
         )
         self.router.add_api_route('/', self.get_by_account_id, methods=['GET'])
         self.router.add_api_route('/{username}', self.get_by_username, methods=['GET'])
-        self.router.add_api_route('/register', self.register_account, methods=['POST'])
+        self.router.add_api_route('/register', self.register_account_cmd, methods=['POST'])
 
     async def get_by_username(self, username: str):
         # TODO: get from db
@@ -34,8 +34,8 @@ class AccountRouter():
         }
         return JSONResponse(account)
 
-    def register_account_cmd(self, account_data: dict):
-        logger.info(f"Registering account: {account_data}")
+    def register_account_cmd(self, account: dict):
+        logger.info(f"Registering account: {account}")
         metadata = self.message_queue.send_message({
             'command': "register_account_cmd",
             'account': 'account_data'
