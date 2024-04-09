@@ -2,9 +2,12 @@ from fastapi import APIRouter
 from loguru import logger
 from starlette.responses import JSONResponse
 
+from fast_api_jwt.commands.mqs.message_queue_facade_base import MessageQueueFacadeBase
+
 
 class AccountRouter():
-    def __init__(self):
+    def __init__(self, message_queue: MessageQueueFacadeBase):
+        self.message_queue = message_queue
         self.router = APIRouter(
             prefix="/service/account",
             tags=["accounts"],
@@ -31,7 +34,10 @@ class AccountRouter():
         }
         return JSONResponse(account)
 
-    def register_account(self, account_data: dict):
-        # TODO: invoke event so this command can executed asynchronously
+    def register_account_cmd(self, account_data: dict):
         logger.info(f"Registering account: {account_data}")
-        return JSONResponse({"task_id": 2112})
+        metadata = self.message_queue.send_message({
+            'command': "register_account_cmd",
+            'account': 'account_data'
+        })
+        return JSONResponse(metadata)

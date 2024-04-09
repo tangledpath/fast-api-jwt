@@ -2,9 +2,12 @@ from fastapi import APIRouter
 from loguru import logger
 from starlette.responses import JSONResponse
 
+from fast_api_jwt.commands.mqs.message_queue_facade_base import MessageQueueFacadeBase
+
 
 class StoryspaceRouter():
-    def __init__(self):
+    def __init__(self, message_queue: MessageQueueFacadeBase):
+        self.message_queue = message_queue
         self.router = APIRouter(
             prefix="/service/storyspaces",
             tags=["storyspaces"],

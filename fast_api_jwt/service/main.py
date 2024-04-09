@@ -1,13 +1,16 @@
 import os
 
+from loguru import logger
 import uvicorn as uvicorn
 from fastapi import Depends, FastAPI
 
+from fast_api_jwt.commands.mqs.message_queue_facade_base import MessageQueueFacadeBase
 from .dependencies import verify_jwt
 from .routers.account_router import AccountRouter
 from .routers.storyspace_router import StoryspaceRouter
+from fast_api_jwt.commands.app_message_queue import AppMessageQueue
 
-if os.getenv('PYTHON_ENV') != 'production':
+if os.getenv('FAST_API_ENV') != 'production':
     from dotenv import load_dotenv
     load_dotenv()
 
@@ -26,16 +29,22 @@ class FastAPIJWTService(FastAPI):
             version="1.0.0",
         )
 
-    def build(self) -> FastAPI:
-        """ Creates service.  Includes other routers with dependency injection """
-        account_router = AccountRouter()
-        storyspace_router = StoryspaceRouter()
+        # Get Message Queue Facade for our environment:
+        self.app_mq_facade: MessageQueueFacadeBase = AppMessageQueue().mq_facade()
+        logger.info(f"Set up message queue: {self.app_mq_facade}")
 
+    def build(self) -> FastAPI:
+        """ Construct routers; injecting appropriate Message Queue Facade """
+        account_router = AccountRouter(self.app_mq_facade)
+        storyspace_router = StoryspaceRouter(self.app_mq_facade)
+
+        """ Includes other routers with dependency injection """
         self.include_router(account_router.router, dependencies=[Depends(verify_jwt)])
         self.include_router(storyspace_router.router, dependencies=[Depends(verify_jwt)])
 
         # Add top level route; implemented by `root` method:
         self.router.add_api_route('/', self.root, methods=['GET'])
+        return self
 
     async def root(self):
         """ Our root (/) endpoint implementation. """
