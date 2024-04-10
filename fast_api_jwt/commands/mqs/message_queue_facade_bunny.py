@@ -32,10 +32,11 @@ class BunnyMQFacade(MessageQueueFacadeBase):
             grace_period=grace_period
         )
         self.bunny.register_handler(BunnyMQ.WILDCARD_HANDLER, self.message_handler)
+        self.bunny.execute()
 
-    def send_message(self, payload: Dict[str, Any]) -> None:
+    def send_message(self, command: str, message: Dict[str, Any]) -> Dict[str, Any]:
         """ send_message interface for BunnyMQ """
-        return self.bunny.send_message(payload)
+        return self.bunny.send_message(command, message)
 
     def message_handler(self, payload: Dict[str, Any]) -> Any:
         """

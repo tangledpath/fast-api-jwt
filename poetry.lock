@@ -1322,7 +1322,7 @@ dev = ["pre-commit", "pytest-asyncio", "tox"]
 
 [[package]]
 name = "python-bunny-mq"
-version = "0.1.6"
+version = "0.1.7"
 description = "Ultra-lightweight (no-dependency) message queue for intra-process pub-sub communication."
 optional = false
 python-versions = "^3.12"
@@ -2083,4 +2083,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "f7f37409e2e6ea3fb2310295668728b03258b8c0865a7992dc28c6b538bd1af8"
+content-hash = "4518528740e38fee763f95af3f5c3d4a32cb1d03832ba7b806b3776b4cfccab4"

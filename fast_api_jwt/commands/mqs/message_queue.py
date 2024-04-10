@@ -5,10 +5,10 @@ from fast_api_jwt.commands.mqs.message_queue_facade_bunny import BunnyMQFacade
 from fast_api_jwt.commands.mqs.message_queue_facade_sqs import SQSMQFacade
 
 
-class AppMessageQueue:
+class MessageQueue:
     """
     This class controls the usage of different message queues (depending on environment).
-    Simply instantiate the AppMessageQueue and call mq_facade to obtain the appropriate
+    Simply instantiate the MessageQueue and call mq_facade to obtain the appropriate
     message queue for your environment.
     """
 

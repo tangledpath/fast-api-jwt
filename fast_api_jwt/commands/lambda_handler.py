@@ -2,5 +2,5 @@ import sys
 from .commands import Commands
 
 
-def handler(event, context):
-    return Commands.process_command(event)
+def command_handler(message, context):
+    return Commands.process_command(message)

@@ -1,6 +1,8 @@
 from operator import methodcaller
 from typing import Dict, Any
 
+from fast_api_jwt.database.mock_db import MockDB
+
 
 class Commands:
     @classmethod
@@ -16,5 +18,7 @@ class Commands:
 
     @classmethod
     def register_account(cls, payload: Dict[str, Any]):
+        db = MockDB()
         account = payload.get("account", None)
+        db.add_account(account)
         return account

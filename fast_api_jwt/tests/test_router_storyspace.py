@@ -1,11 +1,16 @@
+import os
+
 from fastapi.testclient import TestClient
 
+from fast_api_jwt.database.mock_db import MockDB
 from fast_api_jwt.service.dependencies import ERR_AUTH_HEADER_MISSING
 from fast_api_jwt.service.main import app
 from fast_api_jwt.utils.jwt_util import JWTUtil
 
 # Client for testing app:
 client = TestClient(app)
+mock_db = MockDB()
+os.putenv('FAST_API_ENV', 'test')
 
 
 def test_by_username_no_jwt():
@@ -20,11 +25,11 @@ def test_by_username():
     assert response.json() == [
         {
             'id': 1,
-            'name': 'barfood'
+            'username': 'barfood'
         },
         {
             'id': 2,
-            'name': 'bazbars'
+            'username': 'bazbars'
         }
     ]
 
@@ -40,5 +45,5 @@ def test_by_id():
     assert response.status_code == 200
     assert response.json() == {
         'id': '2113',
-        'name': 'barfood'
+        'username': 'barfood'
     }

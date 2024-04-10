@@ -20,7 +20,7 @@ class JWTUtil:
             :raises JWTError, ExpiredSignatureError, JWTClaimsError
         """
         return jwt.decode(authorization_header, os.getenv('JWT_SECRET_KEY'), algorithms=[os.getenv('JWT_ALGORITHM')],
-                          audience='fast-api-jwtp-sqsBotoClient')
+                          audience='fast-api-jwtp-sqs_boto_client')
 
     @classmethod
     def encode_jwt(cls, api_key: Union[str, None] = None) -> str:
@@ -37,7 +37,7 @@ class JWTUtil:
             iat=now,
             exp=now + datetime.timedelta(minutes=5),
             nbf=now,
-            iss='fast-api-jwtp-sqsBotoClient',
+            iss='fast-api-jwtp-sqs_boto_client',
         )
         if apiKey:
             payload['apiKey'] = apiKey

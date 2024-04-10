@@ -13,9 +13,9 @@ class MessageQueueFacadeBase(ABC):
     as it has no dependencies and no separate runtime environment.
     """
 
-    def send_message(self, payload: Dict[str, Any]) -> None:
+    def send_message(self, command: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
              Derived clases should implement this method to send a message
              for the represented Message Queue
         """
-        self.bunny_mq.send_message(payload)
+        pass
