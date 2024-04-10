@@ -15,6 +15,7 @@ class AppMessageQueue:
     """
     fast_api_env = os.getenv('FAST_API_ENV', 'development')
     queue_name = os.getenv('AWS_SQS_QUEUE_NAME')
+    print("queue_name", queue_name)
     endpoint_url = os.getenv("AWS_ENDPOINT_URL", None)
     queue_url = None
     sqs_boto_client = None
@@ -88,12 +89,29 @@ class AppMessageQueue:
         from fast_api_jwt.commands.lambda_handler import command_handler
 
         while not cls.stopping:
-            message = cls.sqs_boto_client.get_message(QueueUrl=cls.queue_url)
-            if message:
-                logger.info(f"Invoking lambda function with: {message}")
-                command_handler(message=message, context=None)
+            # Get message:
+            response = cls.sqs_boto_client.receive_message(
+                QueueUrl=cls.queue_url,
+                MaxNumberOfMessages=1,
+                VisibilityTimeout=0,
+                WaitTimeSeconds=0
+            )
+            if 'Messages' in response:
+                logger.info(f"Received response from receive_message: {response['Messages']}")
+                message = response['Messages'][0]
+                receipt_handle = message['ReceiptHandle']
+                if message:
+                    logger.info(f"Invoking lambda function with: {message}")
+                    command_handler(message=message, context=None)
 
-                time.sleep(0.1)
+                # Remove message:
+                cls.sqs_boto_client.delete_message(
+                    QueueUrl=cls.queue_url,
+                    ReceiptHandle=receipt_handle
+                )
+                print('Received and deleted message: %s' % message)
+            else:
+                time.sleep(1.0)
 
     @classmethod
     def __create_queue(cls):

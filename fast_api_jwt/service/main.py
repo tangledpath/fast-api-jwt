@@ -6,17 +6,11 @@ import uvicorn as uvicorn
 from fastapi import Depends, FastAPI
 from loguru import logger
 
-from fast_api_jwt.mq.app_message_queue import AppMessageQueue
 from .dependencies import verify_jwt
 from .routers.account_router import AccountRouter
 from .routers.storyspace_router import StoryspaceRouter
 
-environment = os.getenv('FAST_API_ENV', 'development')
-if environment != 'production':
-    from dotenv import load_dotenv
-
-    load_dotenv(f".env.${environment}")
-
+from fast_api_jwt.mq.app_message_queue import AppMessageQueue
 
 class FastAPIJWTService(FastAPI):
     """
@@ -24,45 +18,42 @@ class FastAPIJWTService(FastAPI):
     and dependency injection as needed.
     """
 
-    @asynccontextmanager
-    async def lifespan(self, _: FastAPI):
-        print("Boom!")
-        # Load the messaging system:
-        AppMessageQueue.initialize()
-        yield
-        # Clean up and release the resources
-        AppMessageQueue.shutdown()
-
     def __init__(self):
-        print("Boom?", self.lifespan)
         """ Constructor for FastAPIJWTService """
         super().__init__(
-            lifespan=self.lifespan,
             title="Fast API JWT Example",
             description="Fast API JWT Example",
             version="1.0.0",
+            on_shutdown=[self.shutdown]
         )
 
+        # AppMessageQueue.initialize()
         # Get Message Queue Facade for our environment:
         self.message_queue: Type[AppMessageQueue] = AppMessageQueue
-        logger.info(f"Set up message queue: {self.message_queue}")
+        logger.info(f"Set message queue: {self.message_queue}")
 
     def build(self) -> FastAPI:
         """ Construct routers; injecting appropriate Message Queue Facade """
         account_router = AccountRouter(self.message_queue)
         storyspace_router = StoryspaceRouter(self.message_queue)
 
-        """ Includes other routers with dependency injection """
-        self.include_router(account_router.router, dependencies=[Depends(verify_jwt)])
-        self.include_router(storyspace_router.router, dependencies=[Depends(verify_jwt)])
-
         # Add top level route; implemented by `root` method:
+        logger.info(f"self.router: {self.router}")
         self.router.add_api_route('/', self.root, methods=['GET'])
+
+        """ Includes other routers with dependency injection """
+        # self.include_router(account_router.router, dependencies=[Depends(verify_jwt)]);
+        # self.include_router(storyspace_router.router, dependencies=[Depends(verify_jwt)])
+
         return self
 
     async def root(self):
         """ Our root (/) endpoint implementation. """
         return {"msg": "Hello from our fast-api-jwt app."}
+
+    async def shutdown(self):
+        logger.info(f"Shutting down message_queue: {self.message_queue}")
+        self.message_queue.shutdown()
 
 
 # Create instance of our class and call build:

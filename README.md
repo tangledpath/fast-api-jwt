@@ -1,28 +1,12 @@
 # FastAPI Service 
 FastAPI Service with JWT verification and tests.
 
-<p>
-  <img src="https://raw.githubusercontent.com/tangledpath/fast-api-jwt/master/fast_api_jwt_sm.png" align="left" width="512"/>
-</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-<p>&nbsp</p>
-
+![](https://raw.githubusercontent.com/tangledpath/fast-api-jwt/master/fast_api_jwt_sm.png)
 
 ## Article
 Associated article can be found at these locations:
-* Personal portfolio: 
-* LinkedIn:
+* Personal portfolio: https://git-steven.github.io/fastapi/python/jwt/authentication/security/fast-api-with-jwt/
+* LinkedIn: https://www.linkedin.com/pulse/fastapi-jwt-api-key-authentication-steven-miers-kfvdc
 * Medium:
 
 ## GitHub
@@ -42,16 +26,28 @@ Linting is done via autopep8
 script/lint.sh
 ```
 
-### Documentation
+## Documentation
 Generates to [./docs](docs) (as one part of build process).  See [build script](script/build.sh) for more info.
 ```bash
 script/build.sh
 ```
 
-### Testing
+## Testing
 ```bash
   clear; pytest
 ```
 
-### Building
-`script/build.sh`
+## Building
+```bash
+script/build.sh`
+```
+
+## Running 
+### standalone
+```bash
+script/start-server.sh
+```
+
+### From Docker
+
+## Deploying
