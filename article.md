@@ -116,7 +116,7 @@ ERR_MISSING_API_TOKEN = "Missing API token"
 async def verify_jwt(authorization: Annotated[str | None, Header()] = None) -> None:
     """
     Verify the JWT in the authorization header.  A 401 status code is sent back if
-    it is not present, malformed, or does not contain the corrrect apiKey.
+    it is not present, malformed, or does not contain the correct apiKey.
     :param authorization: The authorization header
     :return: None
     :raises HTTPException: Results in a 404 with error message if something goes wrong
@@ -241,7 +241,7 @@ This allows us to invoke our service, e.g.,
 response = client.get("/service/account/ACCOUNT_USERNAME")
 ```
 
-We also need to import our [JWT utility](https://github.com/tangledpath/fast-api-jwt/blob/article1/fast_api_jwt/utils/jw_util.py) from above in order to encode the JWT and make it available as a request header, as well as 
+We also need to import our [JWT utility](https://github.com/tangledpath/fast-api-jwt/blob/article1/fast_api_jwt/utils/jwt_util.py) from above in order to encode the JWT and make it available as a request header, as well as 
 the error messages that will be returned if any part of the request is incorrect.
 ```python
 from fast_api_jwt.service.dependencies import ERR_AUTH_HEADER_MISSING, ERR_INCORRECT_API_TOKEN, ERR_MISSING_API_TOKEN

@@ -48,4 +48,4 @@ app.build()
 
 # Start the service:
 if __name__ == "__main__":
-    uvicorn.run("fast_api_jwt.service.main:app", port=9000, reload=True)
+    uvicorn.run("fast_api_jwt.service.main:app", port=8000, reload=True)

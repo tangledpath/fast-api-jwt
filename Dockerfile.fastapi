@@ -1,6 +1,0 @@
-FROM public.ecr.aws/docker/library/python:3.12
-ENV DEBIAN_FRONTEND='noninteractive'
-WORKDIR /app
-COPY . .
-RUN pip install -r requirements.txt
-EXPOSE 9000
