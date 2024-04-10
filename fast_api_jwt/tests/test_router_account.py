@@ -10,7 +10,6 @@ from fast_api_jwt.utils.jwt_util import JWTUtil
 """ Client for testing app: """
 
 client = TestClient(app)
-mock_db = MockDB()
 os.putenv('FAST_API_ENV', 'test')
 
 
@@ -86,5 +85,5 @@ def test_command_account_register():
     assert response.status_code == 200
     print('response.json()::', response.json())
 
-    db_account = mock_db.get_account('2114')
+    db_account = MockDB.get_account('2114')
     assert db_account is not None

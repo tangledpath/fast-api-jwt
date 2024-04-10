@@ -1,3 +1,6 @@
+from fast_api_jwt.mq.app_message_queue import AppMessageQueue
+
+
 def pytest_configure(config):
     """
     Allows plugins and conftest files to perform initial configuration.
@@ -18,7 +21,8 @@ def pytest_sessionfinish(session, exitstatus):
     Called after whole test run finished, right before
     returning the exit status to the system.
     """
-    # AppMessageQueue.shutdown()
+    print("Shutting down message_queue...")
+    AppMessageQueue.shutdown()
 
 
 def pytest_unconfigure(config):

@@ -9,7 +9,6 @@ from fast_api_jwt.utils.jwt_util import JWTUtil
 
 # Client for testing app:
 client = TestClient(app)
-mock_db = MockDB()
 os.putenv('FAST_API_ENV', 'test')
 
 

@@ -10,7 +10,6 @@ from fast_api_jwt.database.mock_db import MockDB
 
 class AccountRouter:
     def __init__(self, message_queue: Type[AppMessageQueue]):
-        self.mock_db = MockDB()
         self.message_queue = message_queue
         self.router = APIRouter(
             prefix="/service/account",
@@ -22,12 +21,12 @@ class AccountRouter:
         self.router.add_api_route('/register', self.register_account_cmd, methods=['POST'])
 
     async def get_by_username(self, username: str):
-        account = self.mock_db.get_account_by_username(username)
+        account = MockDB.get_account_by_username(username)
         logger.info(f"Retrieved account for username: {username}: {account}")
         return JSONResponse(account)
 
     async def get_by_account_id(self, account_id: str):
-        account = self.mock_db.get_account(account_id)
+        account = MockDB.get_account(account_id)
         logger.info(f"Retrieved account for id: {account_id}: {account}")
         return JSONResponse(account)
 

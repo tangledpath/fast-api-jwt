@@ -35,29 +35,48 @@ class AppMessageQueue:
         cls.__start_queue()
 
     @classmethod
-    def shutdown(cls):
-        if cls.fast_api_env != 'production' and cls.mq_thread:
-            cls.stopping = True
-            time.sleep(5)
-            cls.mq_thread.join(timeout=5)
-
-    @classmethod
     def send_message(cls, command: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """ The SQS send_message implementation """
-        message = cls.build_message_params(command, payload)
+        message = cls.__build_message_params(command, payload)
         response = cls.sqs_boto_client.send_message(**message)
         return response
 
     @classmethod
-    def build_message_params(cls, command: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """ Get SQS message params from the payload """
+    def shutdown(cls) -> None:
+        """
+        Shut down gracefully.
+        """
+        if not cls.stopping and cls.fast_api_env != 'production' and cls.mq_thread:
+            cls.stopping = True
+            if cls.queue_url:
+                for i in range(5):
+                    response = cls.sqs_boto_client.get_queue_attributes(
+                        QueueUrl=cls.queue_url,
+                        AttributeNames=[
+                            'ApproximateNumberOfMessages',
+                        ]
+                    )
+                    msg_count = response['Attributes']['ApproximateNumberOfMessages']
+                    if msg_count == 0:
+                        logger.info("No messages remaining; allowing shutdown...")
+                        break
+                    time.sleep(1.0)
+            cls.mq_thread.join(timeout=5)
+
+    @classmethod
+    def __build_message_params(cls, command: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Get SQS message params from the message; using the command and message parameters.
+
+        return: The message params as a dictionary
+        """
         msg = {
             'MessageAttributes': {
                 'command': {
                     'DataType': 'String',
                     'StringValue': command,
                 },
-                'payload': {
+                'message': {
                     'DataType': 'String',
                     'StringValue': json.dumps(payload),
                 },
@@ -92,6 +111,7 @@ class AppMessageQueue:
             # Get message:
             response = cls.sqs_boto_client.receive_message(
                 QueueUrl=cls.queue_url,
+                MessageAttributeNames=['All'],
                 MaxNumberOfMessages=1,
                 VisibilityTimeout=0,
                 WaitTimeSeconds=0
