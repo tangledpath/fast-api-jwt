@@ -17,7 +17,7 @@ loguru = "^0.7.2"
 [tool.poetry.group.dev.dependencies]
 poetry-plugin-export = "^1.7.1"
 autopep8 = "^2.1.0"
-pdoc = "^14.4.0"
+pdoc = "^14.5.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.0.1"
